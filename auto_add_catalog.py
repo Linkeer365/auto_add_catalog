@@ -6,6 +6,8 @@ import os
 import sys
 import time
 
+# import pyperclip
+
 target_dir=r"D:\AllDowns\newbooks"
 
 catalog_dir=r"D:\AllDowns\newbooks\catalogs"
@@ -135,21 +137,36 @@ def move_to_ctb(pdf_name):
 
 
 def open_one_pdf(catalog_name,pdf_name):
+
+    startAt=time.time()
     os.startfile(pce_path)
     # 打开文件1-2s，保险2s
+
+    # 2020年9月27日18:42:56，优先改这里...
     time.sleep(1)
 
     root_hd=None
     pce_hd=win32gui.FindWindowEx(root_hd,0,0,pce_str)
 
+    # while not pce_hd:
+    #     pce_hd=win32gui.FindWindowEx(root_hd,0,0,pce_str)
+        # time.sleep(1)
+
     dakai_pos=(414,224)
     click_on_pos(dakai_pos)
+
+    # 使用while不大靠谱...
 
     time.sleep(1)
 
     dakai_str='打开'
-
     dakai_hd=win32gui.FindWindowEx(root_hd,0,0,dakai_str)
+
+    # while not dakai_hd:
+    #     click_on_pos(dakai_pos)
+    #     dakai_hd=win32gui.FindWindowEx(root_hd,0,0,dakai_str)
+    #     # time.sleep(1)
+
 
     # 数一下是第11个...(有三个空位去一个个试)
     feed_path_hd=get_hd_from_child_hds(dakai_hd,12,"")
@@ -166,81 +183,87 @@ def open_one_pdf(catalog_name,pdf_name):
     pdf_path=f"{target_dir}{os.sep}{pdf_name}"
 
     win32gui.SendMessage(feed_path_hd,win32con.WM_SETTEXT,0,pdf_path)
-    time.sleep(2)
+
+    # 这里send理论上是不需要sleep的...
+
+    feed_path_hd = get_hd_from_child_hds(dakai_hd, 12, "")
+
+    # time.sleep(2)
 
     win32gui.SendMessage(queding_hd,win32con.BM_CLICK)
 
-
+    # 这段先留着，主要一开始我想搞缝合，所以有这段，但现在觉得其实没什么必要了...
 
     inside_pos=(804, 421)
-    click_on_pos(inside_pos)
-    time.sleep(2)
-
-    press_ctrl_a()
-    press_ctrl_c()
-
-    # 写入剪贴板需要2s...
-
-    time.sleep(2)
-
-    ori_text=getText()
-
-    # clearText()
-
-    if not ori_text:
-        print("Empty!Empty!Empty!")
-
-
-    ori_text_list=ori_text.split("\n")
-
-    for each_idx,each_line in enumerate(ori_text_list,1):
-        print(repr(each_line),"\t\t\t",each_idx)
-
-    # order=input("(d for drop; a for all; num for the last line number)\nYour choice:")
-    order="d"
-    final_ori_text_list=pick_good_from_ori(order,ori_text_list)
-
+    # click_on_pos(inside_pos)
+    # time.sleep(1)
+    #
+    # press_ctrl_a()
+    # press_ctrl_c()
+    #
+    # # 写入剪贴板需要2s...
+    #
+    # time.sleep(1)
+    #
+    # ori_text=getText()
+    #
+    # # clearText()
+    #
+    # if not ori_text:
+    #     print("Empty!Empty!Empty!")
+    #
+    #
+    # ori_text_list=ori_text.split("\n")
+    #
+    # for each_idx,each_line in enumerate(ori_text_list,1):
+    #     print(repr(each_line),"\t\t\t",each_idx)
+    # # time.sleep(5)
+    # # order=input("(d for drop; a for all; num for the last line number)\nYour choice:")
+    # order="d"
+    # final_ori_text_list=pick_good_from_ori(order,ori_text_list)
+    final_ori_text_list=[]
     catalog_list=[]
     with open(catalog_path,"r",encoding="utf-8") as f:
-        catalog_list=[each.rstrip("\t")+"\n" for each in f.readlines() if bool(each.strip("\n"))!=0]
+        catalog_list=[each.lstrip("\t").replace("\n","\r\n") for each in f.readlines() if bool(each.strip("\n"))!=0]
 
     final_list=final_ori_text_list+catalog_list
+
+    # 这狗东西是用\r\n结尾的，艹！！
 
     for each_line in final_list:
         print(repr(each_line))
 
     final_catalog="".join(final_list)
 
-    print(final_catalog)
+    # print(repr(final_catalog))
     setText(final_catalog)
 
-    time.sleep(2)
+    # pyperclip.copy(final_catalog)
+
+    # time.sleep(2)
 
     assert getText()==final_catalog
 
     win32gui.SetForegroundWindow(pce_hd)
 
     # 这里必须3s
-    time.sleep(2)
+    time.sleep(1)
 
     click_on_pos(inside_pos)
-    time.sleep(1)
+    # time.sleep(1)
     press_ctrl_a()
-    time.sleep(1)
     press_ctrl_v()
     time.sleep(1)
     press_ctrl_s()
+    time.sleep(1)
 
-    # 这个时间必须给足5s...
-
-    time.sleep(5)
+    # time.sleep(2)
 
     # 最后那个存储完毕你也得先点了再退出呀，做事不细心唉...
 
     pce2_hd=win32gui.FindWindowEx(root_hd,0,0,pce_str2)
     queding_hd=get_hd_from_child_hds(pce2_hd,0,"确定")
     win32gui.SendMessage(queding_hd,win32con.BM_CLICK)
-
 
     win32gui.SendMessage(pce_hd,win32con.WM_CLOSE,0,0)
 
@@ -254,6 +277,11 @@ def open_one_pdf(catalog_name,pdf_name):
     new_path=f"{target_dir}{os.sep}{new_name}"
     os.rename(pdf_path,new_path)
 
+    endAt=time.time()
+
+    time_cost=endAt-startAt
+
+    print(f"Run time:{time_cost}")
     print("one done.")
 
 def main():
@@ -269,19 +297,21 @@ def main():
 
     for each_line in lines:
         ssid,pdf_name=each_line.split("\t\t\t")
-        if os.path.exists("withCata_"+pdf_name):
+        if os.path.exists(f"{target_dir}{os.sep}withCata_{pdf_name}"):
             print("already:",pdf_name)
             continue
         pdf_name_change_suffix=pdf_name.replace(".pdf",".txt")
         expect_catalog_name=f"{ssid}ssidssid{pdf_name_change_suffix}"
         error_catalog_name=f"error_{expect_catalog_name}"
-        if expect_catalog_name in catalogs or not os.path.exists(f"{target_dir}{os.sep}{pdf_name}"):
+        if expect_catalog_name in catalogs and os.path.exists(f"{target_dir}{os.sep}{pdf_name}"):
             catalog_name=expect_catalog_name
             print("Catalog name:",catalog_name)
             open_one_pdf(catalog_name,pdf_name)
         else:
-            if error_catalog_name+"\n" in error2s:
+            if error_catalog_name+"\n" in error2s and not os.path.exists(f"{ct_dir}{os.sep}{pdf_name}"):
                 move_to_ctb(pdf_name)
+            else:
+                print("already ctb.")
     print("all done.")
 
 if __name__ == '__main__':
