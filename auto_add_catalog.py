@@ -18,6 +18,9 @@ ct_dir=r"D:\刺头书\ucdrs无书签"
 
 error2_path=r"D:\AllDowns\newbooks\catalogs\error-notfetch.txt"
 
+if not os.path.exists(error2_path):
+    open(error2_path,"w").close()
+
 # strange_dir=r"D:\AllDowns\strangebooks"
 
 pce_str="PdgCntEditor（文本）"
@@ -224,7 +227,7 @@ def open_one_pdf(catalog_name,pdf_name):
     final_ori_text_list=[]
     catalog_list=[]
     with open(catalog_path,"r",encoding="utf-8") as f:
-        catalog_list=[each.lstrip("\t").replace("\n","\r\n") for each in f.readlines() if bool(each.strip("\n"))!=0]
+        catalog_list=[each.lstrip("\t").replace("\n","\r\n").strip(" ") for each in f.readlines() if bool(each.strip("\n"))!=0]
 
     final_list=final_ori_text_list+catalog_list
 
